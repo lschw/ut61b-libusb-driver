@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Uni-T UT61B libusb driver
+#  Copyright (C) 2014 Lukas Schwarz
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+if [ $# != 2 ]; then
+    echo "usage: ut61b_gp /path/to/ut61b_cli /path/to/log/file"
+    echo "cancel capturing with ctrl+c"
+    exit 1
+fi
+
+UT61B_CLI=$1
+FILE=$2
+GP_TMP=./~plot.gp
+
+# catch Ctrl+C for cleanup
+control_c() {
+    echo -en "\n*** Quit ***\n"
+    rm $GP_TMP
+    exit $?
+}
+trap control_c SIGINT
+
+# write temporary gnuplot file
+echo -e "pause 1;
+set term x11 1 noraise
+set xlabel 'Time in [s]'
+plot filename u 1:3 with lines title 'Live capture'
+refresh;
+reread;" >> $GP_TMP
+
+# start gnuplot
+(sleep 1 && gnuplot -e "filename='$FILE'" $GP_TMP) &
+
+# start capturing data
+$UT61B_CLI -f $FILE
+
+
