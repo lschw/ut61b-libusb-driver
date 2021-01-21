@@ -1,5 +1,7 @@
 # Uni-T UT61B multimeter libusb driver
 
+An analysis and description of the USB protocol can be found at https://lukasschwarz.de/ut61b.
+
 ## Installation
 The driver bases on the libusb library which has to be installed. Compile the program with a simple
 
